@@ -3,12 +3,14 @@
 import { useEffect, useState } from "react";
 import { advocatesApi } from "@/app/services/api/advocate";
 import { Advocate } from "@/app/services/api/types";
+import Loading  from "@/app/components/loading";
 
 export default function Home() {
   const [advocates, setAdvocates] = useState<Advocate[]>([]);
   const [filteredAdvocates, setFilteredAdvocates] = useState<Advocate[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [isLoading, setIsLoading] = useState<boolean>(true)
   const [error, setError] = useState<string>("")
+
 
     useEffect(() => {
         const fetchAdvocates = async () => {
@@ -55,50 +57,49 @@ export default function Home() {
   };
 
   return (
-    <main style={{ margin: "24px" }}>
-      <h1>Solace Advocates</h1>
-      <br />
-      <br />
-      <div>
-        <p>Search</p>
-        <p>
-          Searching for: <span id="search-term"></span>
-        </p>
-        <input style={{ border: "1px solid black" }} onChange={onChange} />
-        <button onClick={onClick}>Reset Search</button>
-      </div>
-      <br />
-      <br />
-      <table>
-        <thead>
-          <th>First Name</th>
-          <th>Last Name</th>
-          <th>City</th>
-          <th>Degree</th>
-          <th>Specialties</th>
-          <th>Years of Experience</th>
-          <th>Phone Number</th>
-        </thead>
-        <tbody>
-          {filteredAdvocates.map((advocate, index) => {
-            return (
-              <tr key={advocate.id || index}>
-                <td>{advocate.firstName}</td>
-                <td>{advocate.lastName}</td>
-                <td>{advocate.city}</td>
-                <td>{advocate.degree}</td>
-                <td>
-                  {advocate.specialties.map((s, index) => (
-                    <div key={index}>{s}</div>
-                  ))}
-                </td>
-                <td>{advocate.yearsOfExperience}</td>
-                <td>{advocate.phoneNumber}</td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    </main>
-  );
+      <div style={{margin: "24px"}}>
+          <h1>Solace Advocates</h1><br/><br/>
+          <div>
+              <p>Search</p>
+              <input style={{border: "1px solid black"}} onChange={onChange}/>
+              <button onClick={onClick}>Search</button>
+          </div>
+          <div>
+              <table>
+                  <thead>
+                      <th>First Name</th>
+                      <th>Last Name</th>
+                      <th>City</th>
+                      <th>Degree</th>
+                      <th>Specialties</th>
+                      <th>Years of Experience</th>
+                      <th>Phone Number</th>
+                  </thead>
+                  {isLoading ? (
+                      <Loading size="medium"/>
+                  ) : (
+                      <tbody>
+                        {filteredAdvocates.map((advocate, index) => {
+                          return (
+                              <tr key={advocate.id || index}>
+                                  <td>{advocate.firstName}</td>
+                                  <td>{advocate.lastName}</td>
+                                  <td>{advocate.city}</td>
+                                  <td>{advocate.degree}</td>
+                                  <td>
+                                      {advocate.specialties.map((s, index) => (
+                                          <div key={index}>{s}</div>
+                                      ))}
+                                  </td>
+                                  <td>{advocate.yearsOfExperience}</td>
+                                  <td>{advocate.phoneNumber}</td>
+                              </tr>
+                          );
+                      })}
+                      </tbody>
+                  )}
+              </table>
+            </div>
+          </div>
+      );
 }
