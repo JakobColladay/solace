@@ -6,6 +6,7 @@ export default function Home() {
   const [advocates, setAdvocates] = useState([]);
   const [filteredAdvocates, setFilteredAdvocates] = useState([]);
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
     console.log("fetching advocates...");
@@ -31,14 +32,13 @@ export default function Home() {
           setFilteredAdvocates(jsonResponse.data);
 
           // Reset error state if needed
-          // setError(null);
+          setError(null);
         })
         .catch((error) => {
           // Handle network errors, parsing errors, and thrown errors
           console.error("Error fetching advocates:", error.message);
 
-          // Set error state if needed
-          // setError(error.message);
+          setError(error.message);
         })
         .finally(() => {
           // Always runs, regardless of success or failure
