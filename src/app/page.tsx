@@ -1,20 +1,33 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { advocatesApi } from "@/app/services/api/advocate";
+import { Advocate } from "@/app/services/api/types";
 
 export default function Home() {
-  const [advocates, setAdvocates] = useState([]);
-  const [filteredAdvocates, setFilteredAdvocates] = useState([]);
+  const [advocates, setAdvocates] = useState<Advocate[]>([]);
+  const [filteredAdvocates, setFilteredAdvocates] = useState<Advocate[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [error, setError] = useState<string>("")
 
-  useEffect(() => {
-    console.log("fetching advocates...");
-    fetch("/api/advocates").then((response) => {
-      response.json().then((jsonResponse) => {
-        setAdvocates(jsonResponse.data);
-        setFilteredAdvocates(jsonResponse.data);
-      });
-    });
-  }, []);
+    useEffect(() => {
+        const fetchAdvocates = async () => {
+            setIsLoading(true);
+
+            const { data, error } = await advocatesApi.getAdvocates();
+
+            if (error) {
+                setError(error);
+            } else if (data) {
+                setAdvocates(data);
+                setFilteredAdvocates(data);
+            }
+
+            setIsLoading(false);
+        };
+
+        fetchAdvocates();
+    }, []);
 
   const onChange = (e) => {
     const searchTerm = e.target.value;
@@ -67,16 +80,16 @@ export default function Home() {
           <th>Phone Number</th>
         </thead>
         <tbody>
-          {filteredAdvocates.map((advocate) => {
+          {filteredAdvocates.map((advocate, index) => {
             return (
-              <tr>
+              <tr key={advocate.id || index}>
                 <td>{advocate.firstName}</td>
                 <td>{advocate.lastName}</td>
                 <td>{advocate.city}</td>
                 <td>{advocate.degree}</td>
                 <td>
-                  {advocate.specialties.map((s) => (
-                    <div>{s}</div>
+                  {advocate.specialties.map((s, index) => (
+                    <div key={index}>{s}</div>
                   ))}
                 </td>
                 <td>{advocate.yearsOfExperience}</td>
