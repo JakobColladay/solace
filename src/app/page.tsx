@@ -5,15 +5,45 @@ import { useEffect, useState } from "react";
 export default function Home() {
   const [advocates, setAdvocates] = useState([]);
   const [filteredAdvocates, setFilteredAdvocates] = useState([]);
+  const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
     console.log("fetching advocates...");
-    fetch("/api/advocates").then((response) => {
-      response.json().then((jsonResponse) => {
-        setAdvocates(jsonResponse.data);
-        setFilteredAdvocates(jsonResponse.data);
-      });
-    });
+
+    // Set loading state if needed
+    setIsLoading(true);
+
+    fetch("/api/advocates")
+        .then((response) => {
+          // Check if the response is OK (status 200-299)
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then((jsonResponse) => {
+          // Validate the data structure
+          if (!jsonResponse.data || !Array.isArray(jsonResponse.data)) {
+            throw new Error("Invalid data format received from API");
+          }
+
+          setAdvocates(jsonResponse.data);
+          setFilteredAdvocates(jsonResponse.data);
+
+          // Reset error state if needed
+          // setError(null);
+        })
+        .catch((error) => {
+          // Handle network errors, parsing errors, and thrown errors
+          console.error("Error fetching advocates:", error.message);
+
+          // Set error state if needed
+          // setError(error.message);
+        })
+        .finally(() => {
+          // Always runs, regardless of success or failure
+          setIsLoading(false);
+        });
   }, []);
 
   const onChange = (e) => {
@@ -67,16 +97,16 @@ export default function Home() {
           <th>Phone Number</th>
         </thead>
         <tbody>
-          {filteredAdvocates.map((advocate) => {
+          {filteredAdvocates.map((advocate, index) => {
             return (
-              <tr>
+              <tr key={advocate.id || index}>
                 <td>{advocate.firstName}</td>
                 <td>{advocate.lastName}</td>
                 <td>{advocate.city}</td>
                 <td>{advocate.degree}</td>
                 <td>
-                  {advocate.specialties.map((s) => (
-                    <div>{s}</div>
+                  {advocate.specialties.map((s, index) => (
+                    <div key={index}>{s}</div>
                   ))}
                 </td>
                 <td>{advocate.yearsOfExperience}</td>
