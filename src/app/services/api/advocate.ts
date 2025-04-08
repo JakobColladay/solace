@@ -1,6 +1,6 @@
 // src/services/api/advocates.ts
 import { BaseApi } from './index';
-import { Advocate, ApiResponse, AdvocatesResponse, AdvocateResponse } from './types';
+import { Advocate, ApiResponse, AdvocatesResponse } from './types';
 
 export class AdvocatesApi extends BaseApi {
     constructor() {
@@ -18,21 +18,6 @@ export class AdvocatesApi extends BaseApi {
             return {
                 data: null,
                 error: error instanceof Error ? error.message : 'Failed to fetch advocates'
-            };
-        }
-    }
-
-    async getAdvocateById(id: string | number): Promise<ApiResponse<Advocate>> {
-        try {
-            const response = await this.get<AdvocateResponse>(`/advocates/${id}`);
-            return {
-                data: response.data,
-                error: null
-            };
-        } catch (error) {
-            return {
-                data: null,
-                error: error instanceof Error ? error.message : `Failed to fetch advocate with ID: ${id}`
             };
         }
     }

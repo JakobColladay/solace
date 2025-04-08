@@ -1,50 +1,33 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { advocatesApi } from "@/app/services/api/advocate";
+import { Advocate } from "@/app/services/api/types";
 
 export default function Home() {
-  const [advocates, setAdvocates] = useState([]);
-  const [filteredAdvocates, setFilteredAdvocates] = useState([]);
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState(null)
+  const [advocates, setAdvocates] = useState<Advocate[]>([]);
+  const [filteredAdvocates, setFilteredAdvocates] = useState<Advocate[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [error, setError] = useState<string>("")
 
-  useEffect(() => {
-    console.log("fetching advocates...");
+    useEffect(() => {
+        const fetchAdvocates = async () => {
+            setIsLoading(true);
 
-    // Set loading state if needed
-    setIsLoading(true);
+            const { data, error } = await advocatesApi.getAdvocates();
 
-    fetch("/api/advocates")
-        .then((response) => {
-          // Check if the response is OK (status 200-299)
-          if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-          }
-          return response.json();
-        })
-        .then((jsonResponse) => {
-          // Validate the data structure
-          if (!jsonResponse.data || !Array.isArray(jsonResponse.data)) {
-            throw new Error("Invalid data format received from API");
-          }
+            if (error) {
+                setError(error);
+            } else if (data) {
+                setAdvocates(data);
+                setFilteredAdvocates(data);
+            }
 
-          setAdvocates(jsonResponse.data);
-          setFilteredAdvocates(jsonResponse.data);
+            setIsLoading(false);
+        };
 
-          // Reset error state if needed
-          setError(null);
-        })
-        .catch((error) => {
-          // Handle network errors, parsing errors, and thrown errors
-          console.error("Error fetching advocates:", error.message);
-
-          setError(error.message);
-        })
-        .finally(() => {
-          // Always runs, regardless of success or failure
-          setIsLoading(false);
-        });
-  }, []);
+        fetchAdvocates();
+    }, []);
 
   const onChange = (e) => {
     const searchTerm = e.target.value;
