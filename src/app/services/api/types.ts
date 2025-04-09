@@ -14,11 +14,10 @@ export interface Advocate {
 export interface PaginationParams {
     page: number;
     limit: number;
-    searchTerm?: string;
 }
 
 export interface PaginatedResponse<T> {
-    data: Advocate[];
+    advocates: Advocate[];
     pagination: {
         currentPage: number;
         totalPages: number;

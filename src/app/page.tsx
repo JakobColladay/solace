@@ -32,7 +32,6 @@ export default function Home() {
             const response = await advocatesApi.getAdvocatesWithPagination({
                 page,
                 limit: pagination.itemsPerPage,
-                searchTerm: searchTerm
             });
 
             if (response.error) {
@@ -44,14 +43,14 @@ export default function Home() {
             }
 
             // Update state with the fetched data
-            setAdvocates(response.data.data);
+            setAdvocates(response.data.advocates);
+            setFilteredAdvocates(response.data.advocates)
             setPagination(response.data.pagination);
-
             // Clear error if successful
             setError("");
 
             // Show error if no results found with search
-            if (response.data.data.length === 0 && searchTerm) {
+            if (response.data.advocates.length === 0) {
                 setError("No advocates found matching your search criteria.");
             }
         } catch (err) {
@@ -72,10 +71,6 @@ export default function Home() {
         if (newPage >= 1 && newPage <= pagination.totalPages) {
             fetchAdvocates(newPage, searchTerm);
         }
-    };
-
-    const handleSearch = () => {
-        fetchAdvocates(1, searchTerm);
     };
 
     const onClick = () => {
@@ -111,7 +106,6 @@ export default function Home() {
 
         setFilteredAdvocates(filteredAdvocates);
     };
-
 
     return (
          error !== "" ? <ErrorMessage message={error} /> : (

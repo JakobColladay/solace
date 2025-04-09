@@ -11,15 +11,12 @@ export class AdvocatesApi extends BaseApi {
         try {
             // Construct URL with query parameters
             let url = `/advocates?page=${params.page}&limit=${params.limit}`;
-            if (params.searchTerm) {
-                url += `&search=${encodeURIComponent(params.searchTerm)}`;
-            }
 
             const response = await this.get<PaginatedResponse<Advocate>>(url);
 
             return {
                 data: {
-                    data: response.data,
+                    advocates: response.advocates,
                     pagination: response.pagination
                 },
                 error: null
