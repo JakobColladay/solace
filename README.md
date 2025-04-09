@@ -93,6 +93,7 @@ curl -X POST http://localhost:3000/api/seed
 - Get API
   - Search Functionality moved to the backend
   - More advanced filter - Multiple Options
+  - Pagination using Database functionality instead of manually doing it
 - Sortable Table
 
 
