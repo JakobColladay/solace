@@ -4,54 +4,108 @@ import { useEffect, useState } from "react";
 import { advocatesApi } from "@/app/services/api/advocate";
 import { Advocate } from "@/app/services/api/types";
 import Loading  from "@/app/components/loading";
-import {formatPhoneNumber} from "@/app/utils/formatters";
+import { formatPhoneNumber } from "@/app/utils/formatters";
 import ErrorMessage from "@/app/components/error";
+import SimplePagination from "@/app/components/pagination";
+import { PaginationInfo } from "@/app/types";
+
 
 export default function Home() {
-  const [advocates, setAdvocates] = useState<Advocate[]>([]);
-  const [filteredAdvocates, setFilteredAdvocates] = useState<Advocate[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true)
-  const [error, setError] = useState<string>("")
-  const [searchTerm, setSearchTerm] = useState("")
+    const [advocates, setAdvocates] = useState<Advocate[]>([]);
+    const [filteredAdvocates, setFilteredAdvocates] = useState<Advocate[]>([]);
+    const [isLoading, setIsLoading] = useState<boolean>(true)
+    const [error, setError] = useState<string>("")
+    const [searchTerm, setSearchTerm] = useState("")
+    const [pagination, setPagination] = useState<PaginationInfo>({
+        currentPage: 1,
+        totalPages: 1,
+        totalItems: 0,
+        itemsPerPage: 10
+    });
 
 
-    useEffect(() => {
-        const fetchAdvocates = async () => {
-            setIsLoading(true);
+    // Function to fetch advocates with pagination and optional search
+    const fetchAdvocates = async (page: number, searchTerm: string = "") => {
+        setIsLoading(true);
 
-            const { data, error } = await advocatesApi.getAdvocates();
+        try {
+            const response = await advocatesApi.getAdvocatesWithPagination({
+                page,
+                limit: pagination.itemsPerPage,
+            });
 
-            if (error) {
-                setError(error);
-            } else if (data) {
-                setAdvocates(data);
-                setFilteredAdvocates(data);
+            if (response.error) {
+                throw new Error(response.error);
             }
 
-            setIsLoading(false);
-        };
+            if (!response.data) {
+                throw new Error("No data returned");
+            }
 
-        fetchAdvocates();
+            // Update state with the fetched data
+            setAdvocates(response.data.advocates);
+            setFilteredAdvocates(response.data.advocates)
+            setPagination(response.data.pagination);
+            // Clear error if successful
+            setError("");
+
+            // Show error if no results found with search
+            if (response.data.advocates.length === 0) {
+                setError("No advocates found matching your search criteria.");
+            }
+        } catch (err) {
+            console.error("Failed to fetch advocates:", err);
+            setError(err instanceof Error ? err.message : "Failed to load advocates");
+            setAdvocates([]);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // Initial data load
+    useEffect(() => {
+        fetchAdvocates(1);
     }, []);
 
+    const handlePageChange = (newPage: number) => {
+        if (newPage >= 1 && newPage <= pagination.totalPages) {
+            fetchAdvocates(newPage, searchTerm);
+        }
+    };
+
     const onClick = () => {
+        // If search term is empty, show all advocates
+        if (!searchTerm.trim()) {
+            setFilteredAdvocates(advocates);
+            return;
+        }
+
+        // Convert search term to lowercase once
+        const searchTermLower = searchTerm.toLowerCase().trim();
+
         const filteredAdvocates = advocates.filter((advocate) => {
-            return (
-                advocate.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                advocate.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                advocate.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                advocate.degree.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                advocate.specialties.some(specialty =>
-                    specialty.toLowerCase().includes(searchTerm.toLowerCase())
-                ) ||
-                advocate.yearsOfExperience.toString().includes(searchTerm)
+            // Create an array of fields to search through
+            const searchableFields = [
+                advocate.firstName.toLowerCase(),
+                advocate.lastName.toLowerCase(),
+                advocate.city.toLowerCase(),
+                advocate.degree.toLowerCase(),
+                advocate.yearsOfExperience.toString()
+            ];
+
+            // Check if any of the main fields match
+            if (searchableFields.some(field => field.includes(searchTermLower))) {
+                return true;
+            }
+
+            // Only check specialties if the main fields didn't match
+            return advocate.specialties.some(specialty =>
+                specialty.toLowerCase().includes(searchTermLower)
             );
         });
 
-        // Set the filtered list, not the original list
         setFilteredAdvocates(filteredAdvocates);
     };
-
 
     return (
          error !== "" ? <ErrorMessage message={error} /> : (
@@ -125,6 +179,12 @@ export default function Home() {
                         )}
                     </table>
                 </div>
+
+                <SimplePagination
+                    currentPage={pagination.currentPage}
+                    totalPages={pagination.totalPages}
+                    onPageChange={handlePageChange}
+                />
             </div>
         )
     );
