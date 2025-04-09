@@ -1,17 +1,27 @@
 // src/services/api/advocates.ts
 import { BaseApi } from './index';
-import { Advocate, ApiResponse, AdvocatesResponse } from './types';
+import { Advocate, PaginationParams, PaginatedApiResponse, PaginatedResponse } from './types';
 
 export class AdvocatesApi extends BaseApi {
     constructor() {
         super('/api'); // Base URL for all API calls
     }
 
-    async getAdvocates(): Promise<ApiResponse<Advocate[]>> {
+    async getAdvocatesWithPagination(params: PaginationParams): Promise<PaginatedApiResponse<Advocate>> {
         try {
-            const response = await this.get<AdvocatesResponse>('/advocates');
+            // Construct URL with query parameters
+            let url = `/advocates?page=${params.page}&limit=${params.limit}`;
+            if (params.searchTerm) {
+                url += `&search=${encodeURIComponent(params.searchTerm)}`;
+            }
+
+            const response = await this.get<PaginatedResponse<Advocate>>(url);
+
             return {
-                data: response.data,
+                data: {
+                    data: response.data,
+                    pagination: response.pagination
+                },
                 error: null
             };
         } catch (error) {

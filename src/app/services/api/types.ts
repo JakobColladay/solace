@@ -10,16 +10,24 @@ export interface Advocate {
     phoneNumber: string;
 }
 
-export interface ApiResponse<T> {
-    data: T | null;
-    error: string | null;
+
+export interface PaginationParams {
+    page: number;
+    limit: number;
+    searchTerm?: string;
 }
 
-
-export interface AdvocatesResponse {
+export interface PaginatedResponse<T> {
     data: Advocate[];
+    pagination: {
+        currentPage: number;
+        totalPages: number;
+        totalItems: number;
+        itemsPerPage: number;
+    };
 }
 
-export interface AdvocateResponse {
-    data: Advocate;
+export interface PaginatedApiResponse<T> {
+    data: PaginatedResponse<T> | null;
+    error: string | null;
 }
